@@ -28,7 +28,15 @@ class ResearchOrchestrator:
             try:
                 from openai import AsyncOpenAI
 
-                client = AsyncOpenAI(api_key=self.api_key)
+                base_url = settings.LLM_BASE_URL
+                if not base_url and "gemini" in self.model.lower():
+                    base_url = "https://generativelanguage.googleapis.com/v1beta/openai/"
+
+                client_kwargs = {"api_key": self.api_key}
+                if base_url:
+                    client_kwargs["base_url"] = base_url
+
+                client = AsyncOpenAI(**client_kwargs)
                 response = await client.chat.completions.create(
                     model=self.model,
                     messages=[

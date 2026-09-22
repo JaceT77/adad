@@ -1,7 +1,7 @@
 import uuid
 from datetime import date
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -20,14 +20,46 @@ async def get_or_create_user(
     user = result.scalar_one_or_none()
 
     if not user:
+        # Check if this is the very first user in the system
+        total_users = await session.scalar(select(func.count(User.id)))
+        is_first_user = total_users == 0 or total_users is None
+
         user = User(
             telegram_id=telegram_id,
             full_name=full_name,
             username=username,
             role=role,
             is_active=True,
+            is_admin=is_first_user,
         )
         session.add(user)
+        await session.commit()
+        await session.refresh(user)
+    return user
+
+
+async def get_user_by_telegram_id(session: AsyncSession, telegram_id: int) -> User | None:
+    stmt = select(User).where(User.telegram_id == telegram_id)
+    result = await session.execute(stmt)
+    return result.scalar_one_or_none()
+
+
+async def get_user_by_id(session: AsyncSession, user_id: int) -> User | None:
+    stmt = select(User).where(User.id == user_id)
+    result = await session.execute(stmt)
+    return result.scalar_one_or_none()
+
+
+async def get_non_admin_users(session: AsyncSession) -> list[User]:
+    stmt = select(User).where(User.is_admin == False, User.is_active == True)
+    result = await session.execute(stmt)
+    return list(result.scalars().all())
+
+
+async def set_user_admin(session: AsyncSession, user_id: int, is_admin: bool = True) -> User | None:
+    user = await get_user_by_id(session, user_id)
+    if user:
+        user.is_admin = is_admin
         await session.commit()
         await session.refresh(user)
     return user

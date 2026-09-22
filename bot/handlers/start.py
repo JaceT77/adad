@@ -65,9 +65,11 @@ async def cmd_profile(message: Message) -> None:
         )
 
     role_label = user.role.value.replace("_", " ").title()
+    admin_badge = "👑 Administrator" if user.is_admin else "👷 Specialist"
     text = (
         "👤 *Your Specialist Profile*\n"
         f"• *Name:* {user.full_name}\n"
+        f"• *Privilege:* `{admin_badge}`\n"
         f"• *Role:* `{role_label}`\n"
         f"• *Status:* {'🟢 Active' if user.is_active else '🔴 Inactive'}\n"
         f"• *Reminders:* Evening 19:00 | Morning 09:00\n\n"
@@ -78,11 +80,20 @@ async def cmd_profile(message: Message) -> None:
 
 @router.message(Command("help"))
 async def cmd_help(message: Message) -> None:
+    async with async_session() as session:
+        user = await crud.get_user_by_telegram_id(session, message.from_user.id)
+
     help_text = (
         "📖 *AI Architectural Copilot Commands*\n\n"
         "• `/start` - Start onboarding and set your specialist role\n"
         "• `/task` - Submit tomorrow's project task for overnight research\n"
-        "• `/profile` - View and update your profile & role\n"
-        "• `/help` - Show this help message"
+        "• `/profile` - View your profile and update your role\n"
     )
+    if user and user.is_admin:
+        help_text += (
+            "\n👑 *Administrator Commands:*\n"
+            "• `/admin` - View team stats & admin panel\n"
+            "• `/set_admin` - Promote a specialist to Administrator\n"
+        )
+    help_text += "• `/help` - Show this help message"
     await message.answer(help_text)

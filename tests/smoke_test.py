@@ -23,8 +23,8 @@ async def run_smoke_test() -> None:
     print("   [OK] Tables created successfully.")
 
     async with async_session() as session:
-        # 2. Create / Get User
-        print("\n2. Testing User creation & role assignment...")
+        # 2. Create / Get User & Admin verification
+        print("\n2. Testing User creation, role assignment, and Admin status...")
         user = await crud.get_or_create_user(
             session=session,
             telegram_id=999999999,
@@ -32,7 +32,23 @@ async def run_smoke_test() -> None:
             username="test_architect",
             role=SpecialistRole.ARCHITECT,
         )
-        print(f"   [OK] User created: {user.full_name} (Role: {user.role.value})")
+        print(f"   [OK] User 1 created: {user.full_name} (Role: {user.role.value}, IsAdmin: {user.is_admin})")
+
+        # Create a second user (Specialist)
+        user2 = await crud.get_or_create_user(
+            session=session,
+            telegram_id=888888888,
+            full_name="Second Specialist User",
+            username="second_specialist",
+            role=SpecialistRole.COST_ESTIMATOR,
+        )
+        print(f"   [OK] User 2 created: {user2.full_name} (Role: {user2.role.value}, IsAdmin: {user2.is_admin})")
+
+        # Test admin promotion
+        print("\n2b. Testing Admin Promotion via set_user_admin...")
+        promoted_user = await crud.set_user_admin(session, user2.id, is_admin=True)
+        assert promoted_user.is_admin is True, "User 2 should now be an admin"
+        print(f"   [OK] User 2 successfully promoted to Admin: {promoted_user.is_admin}")
 
         # 3. Create Daily Task (Evening flow)
         print("\n3. Testing Evening Task registration...")

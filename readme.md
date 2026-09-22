@@ -111,6 +111,14 @@ When preparing the brief for a specific project, the AI generates:
 5. **CAD / Technical Starter Assets (DWG References)**:
    - Provision of base DWG/CAD templates and typical detail drawings (providing a 40–60% completed foundation so specialists do not start from a blank canvas).
 
+### 4.3. Administrator & User Hierarchy
+- **First-User-is-Admin**: The very first user who connects with the bot is automatically granted `is_admin = True`.
+- **Admin Delegation (`/set_admin`)**:
+  - An admin can run `/set_admin` to view an interactive list of all non-admin specialists.
+  - Selecting a user from the inline keyboard promotes them to Administrator immediately.
+  - Both the acting admin and the promoted user receive real-time confirmation notifications.
+- **Admin Dashboard (`/admin`)**: Overview of active team members, admin counts, and system metrics.
+
 ---
 
 ## 5. Recommended Tech Stack

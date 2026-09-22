@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     # LLM Settings
     LLM_API_KEY: str = Field(default="")
     LLM_MODEL: str = Field(default="gpt-4o-mini")
+    LLM_BASE_URL: str | None = Field(default=None)
 
     # Schedule Configuration
     EVENING_CRON_HOUR: int = Field(default=19)

@@ -6,7 +6,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from bot.bot import bot, dp
-from bot.handlers import evening, start
+from bot.handlers import admin, evening, start
 from config.settings import settings
 from database.connection import init_db
 from scheduler.scheduler import setup_scheduler
@@ -39,6 +39,7 @@ async def main() -> None:
 
     # 2. Register Telegram Routers
     dp.include_router(start.router)
+    dp.include_router(admin.router)
     dp.include_router(evening.router)
 
     # 3. Setup and Start Background Scheduler
@@ -54,8 +55,7 @@ async def main() -> None:
             "To connect your live Telegram bot:\n"
             "1. Create a bot with @BotFather on Telegram.\n"
             "2. Put your token in `.env` as `BOT_TOKEN=<your_token>`.\n"
-            "3. Run `uv run python main.py` to start receiving real messages.\n"
-            + "=" * 60
+            "3. Run `uv run python main.py` to start receiving real messages.\n" + "=" * 60
         )
         return
 

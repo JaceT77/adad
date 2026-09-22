@@ -1,5 +1,6 @@
 from collections.abc import AsyncGenerator
 
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from config.settings import settings
@@ -19,9 +20,11 @@ async_session = async_sessionmaker(
 
 
 async def init_db() -> None:
-    """Initialize database tables."""
+    """Initialize database tables and upgrade existing columns if needed."""
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        # Ensure is_admin column exists on existing installations
+        await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN NOT NULL DEFAULT FALSE;"))
 
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
