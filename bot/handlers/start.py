@@ -9,6 +9,13 @@ from database.models import SpecialistRole
 
 router = Router(name="start_router")
 
+ROLE_NAMES_UZ = {
+    SpecialistRole.ARCHITECT: "Arxitektor",
+    SpecialistRole.STRUCTURAL_ENGINEER: "Konstruktor (Muhandis)",
+    SpecialistRole.COST_ESTIMATOR: "Smetachi (Smetchik)",
+    SpecialistRole.INTERIOR_DESIGNER: "Interyer va Fasad Dizayneri",
+}
+
 
 @router.message(CommandStart())
 async def cmd_start(message: Message) -> None:
@@ -22,12 +29,12 @@ async def cmd_start(message: Message) -> None:
 
     welcome_text = (
         f"👋 *Assalomu alaykum, {message.from_user.first_name}!*\n\n"
-        "Welcome to the *AI Architectural Copilot*.\n\n"
-        "This assistant helps specialists prepare daily project research dossiers:\n"
-        "• 🕖 *19:00 Evening Check-in*: Ask for tomorrow's assignment.\n"
-        "• 🤖 *Overnight AI Preparation*: Search Uzbek SHNK norms, materials, green tech, and CAD templates.\n"
-        "• 🕘 *09:00 Morning Delivery*: Pre-compiled cheat sheet ready on your desk.\n\n"
-        "Please select your engineering / design role below:"
+        "*Arxitektura va Qurilish bo'yicha AI Yordamchisiga* xush kelibsiz.\n\n"
+        "Ushbu bot mutaxassislarga har kungi ishlarini rejalashtirish va tayyorgarlik ko'rishda yordam beradi:\n"
+        "• 🕖 *19:00 Kechki so'rov*: Ertangi loyiha vazifasini kiritasiz.\n"
+        "• 🤖 *AI tun bo'yi tayyorlaydi*: O'zbekiston SHNK/QMQ normalari, arzon va sifatli materiallar, yashil texnologiyalar va AutoCAD andozalarini izlab jamlaydi.\n"
+        "• 🕘 *09:00 Ertalabki yetkazish*: Ishga kelganingizda to'liq texnik ma'lumotnoma (shpargalka) tayyor bo'ladi.\n\n"
+        "Iltimos, o'z yo'nalishingiz / mutaxassisligingizni tanlang:"
     )
     await message.answer(welcome_text, reply_markup=get_role_keyboard())
 
@@ -44,14 +51,14 @@ async def on_role_selected(callback: CallbackQuery) -> None:
             role=role,
         )
 
-    role_label = role.value.replace("_", " ").title()
+    role_label = ROLE_NAMES_UZ.get(role, role.value)
     text = (
-        f"✅ *Role updated:* `{role_label}`\n\n"
-        "You will automatically receive daily reminders at *19:00* to set your next day's task.\n"
-        "You can also submit a project task right now using the button below or `/task`."
+        f"✅ *Mutaxassislik belgilandi:* `{role_label}`\n\n"
+        "Endi har kuni soat *19:00*da ertangi vazifangizni kiritish uchun eslatma olasiz.\n"
+        "Shuningdek, hoziroq loyiha topshirig'ini kiritish uchun pastdagi tugmani bosing yoki `/task` buyrug'idan foydalaning."
     )
     await callback.message.edit_text(text, reply_markup=get_start_task_keyboard())
-    await callback.answer("Role updated successfully!")
+    await callback.answer("Mutaxassislik muvaffaqiyatli saqlandi!")
 
 
 @router.message(Command("profile"))
@@ -64,16 +71,16 @@ async def cmd_profile(message: Message) -> None:
             username=message.from_user.username,
         )
 
-    role_label = user.role.value.replace("_", " ").title()
-    admin_badge = "👑 Administrator" if user.is_admin else "👷 Specialist"
+    role_label = ROLE_NAMES_UZ.get(user.role, user.role.value)
+    admin_badge = "👑 Administrator" if user.is_admin else "👷 Mutaxassis"
     text = (
-        "👤 *Your Specialist Profile*\n"
-        f"• *Name:* {user.full_name}\n"
-        f"• *Privilege:* `{admin_badge}`\n"
-        f"• *Role:* `{role_label}`\n"
-        f"• *Status:* {'🟢 Active' if user.is_active else '🔴 Inactive'}\n"
-        f"• *Reminders:* Evening 19:00 | Morning 09:00\n\n"
-        "To change your role, tap below:"
+        "👤 *Sizning Profilingiz*\n"
+        f"• *Ism:* {user.full_name}\n"
+        f"• *Maqom:* `{admin_badge}`\n"
+        f"• *Mutaxassislik:* `{role_label}`\n"
+        f"• *Holat:* {'🟢 Faol' if user.is_active else '🔴 Nofaol'}\n"
+        f"• *Eslatmalar:* Kechqurun 19:00 | Ertalab 09:00\n\n"
+        "Mutaxassislikni o'zgartirish uchun quyidan tanlang:"
     )
     await message.answer(text, reply_markup=get_role_keyboard())
 
@@ -84,16 +91,16 @@ async def cmd_help(message: Message) -> None:
         user = await crud.get_user_by_telegram_id(session, message.from_user.id)
 
     help_text = (
-        "📖 *AI Architectural Copilot Commands*\n\n"
-        "• `/start` - Start onboarding and set your specialist role\n"
-        "• `/task` - Submit tomorrow's project task for overnight research\n"
-        "• `/profile` - View your profile and update your role\n"
+        "📖 *AI Yordamchi Buyruqlari*\n\n"
+        "• `/start` - Botni ishga tushirish va mutaxassislikni tanlash\n"
+        "• `/task` - Ertangi loyiha topshirig'ini AI ga yuborish\n"
+        "• `/profile` - Profilingizni ko'rish va mutaxassislikni o'zgartirish\n"
     )
     if user and user.is_admin:
         help_text += (
-            "\n👑 *Administrator Commands:*\n"
-            "• `/admin` - View team stats & admin panel\n"
-            "• `/set_admin` - Promote a specialist to Administrator\n"
+            "\n👑 *Administrator Buyruqlari:*\n"
+            "• `/admin` - Boshqaruv paneli va jamoa statistikasi\n"
+            "• `/set_admin` - Mutaxassisni Administrator etib tayinlash\n"
         )
-    help_text += "• `/help` - Show this help message"
+    help_text += "• `/help` - Ushbu yordam xabarini ko'rsatish"
     await message.answer(help_text)

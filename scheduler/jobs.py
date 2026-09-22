@@ -11,16 +11,16 @@ logger = logging.getLogger(__name__)
 
 
 async def evening_task_prompt_job(bot: Bot) -> None:
-    """Runs at 19:00 daily: sends an interactive prompt to all active specialists."""
-    logger.info("Executing 19:00 evening check-in job.")
+    """Har kuni soat 19:00da barcha faol mutaxassislarga ertangi kun vazifasi bo'yicha so'rov yuboradi."""
+    logger.info("19:00 kechki rejalashtirish vazifasi ishga tushdi.")
     async with async_session() as session:
         users = await crud.get_active_users(session)
 
     prompt_text = (
-        "🕖 *Good Evening!*\n\n"
-        "It's 19:00 — time to set up your assignments for tomorrow.\n"
-        "What project or building will you be working on?\n\n"
-        "Submit your task now so the AI can prepare your *SHNK codes, local materials, green tech, and CAD templates* overnight!"
+        "🕖 *Xayrli kech!*\n\n"
+        "Soat 19:00 bo'ldi — ertangi loyiha vazifasini kiritish vaqti keldi.\n"
+        "Ertaga qaysi loyiha yoki bino ustida ishlaysiz?\n\n"
+        "Vazifangizni hoziroq kiriting. AI tun bo'yi siz uchun *O'zbekiston SHNK normalari, mahalliy arzon materiallar, yashil texnologiyalar va AutoCAD andozasini* tayyorlab qo'yadi!"
     )
 
     for user in users:
@@ -30,15 +30,15 @@ async def evening_task_prompt_job(bot: Bot) -> None:
                 text=prompt_text,
                 reply_markup=get_start_task_keyboard(),
             )
-            logger.info(f"Evening prompt sent to user {user.telegram_id}")
+            logger.info(f"19:00 so'rovi yuborildi: {user.telegram_id}")
         except Exception as e:
-            logger.error(f"Failed to send evening prompt to user {user.telegram_id}: {e}")
+            logger.error(f"Foydalanuvchiga so'rov yuborishda xatolik ({user.telegram_id}): {e}")
 
 
 async def morning_dossier_delivery_job(bot: Bot) -> None:
-    """Runs at 09:00 daily: delivers pre-compiled dossiers to specialists."""
+    """Har kuni soat 09:00da tayyor texnik ma'lumotnomani mutaxassisga yetkazadi."""
     today = date.today()
-    logger.info(f"Executing 09:00 morning dossier delivery job for {today}.")
+    logger.info(f"09:00 ertalabki ma'lumotnomalarni yetkazish vazifasi ishga tushdi: {today}.")
 
     async with async_session() as session:
         ready_tasks = await crud.get_ready_dossiers_for_delivery(session, target_date=today)
@@ -49,11 +49,15 @@ async def morning_dossier_delivery_job(bot: Bot) -> None:
 
             user_telegram_id = task.user.telegram_id
             try:
+                header = (
+                    "🌅 *Xayrli tong! Bugungi ish kuningiz uchun tayyorlangan texnik ma'lumotnoma (shpargalka):*\n"
+                    "━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+                )
                 await bot.send_message(
                     chat_id=user_telegram_id,
-                    text=task.dossier.full_content,
+                    text=header + task.dossier.full_content,
                 )
                 await crud.mark_task_delivered(session, task.id)
-                logger.info(f"Delivered dossier for task {task.id} to user {user_telegram_id}")
+                logger.info(f"Ma'lumotnoma yetkazildi: vazifa {task.id}, foydalanuvchi {user_telegram_id}")
             except Exception as e:
-                logger.error(f"Failed to deliver dossier to user {user_telegram_id}: {e}")
+                logger.error(f"Foydalanuvchiga yetkazishda xatolik ({user_telegram_id}): {e}")

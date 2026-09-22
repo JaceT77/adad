@@ -24,9 +24,9 @@ class TaskSubmissionState(StatesGroup):
 @router.callback_query(F.data == "action:submit_task")
 async def callback_start_task(callback: CallbackQuery, state: FSMContext) -> None:
     await callback.message.answer(
-        "🏗️ *Submit Tomorrow's Project Task*\n\n"
-        "Please enter the *Project Title*:\n"
-        "_(e.g., 'Navoi Street Commercial Center' or '3-Story Office Building in Yunusabad')_"
+        "🏗️ *Ertangi Loyiha Vazifasini Kiritish*\n\n"
+        "Iltimos, *loyiha nomini* kiriting:\n"
+        "_(Masalan: 'Navoiy ko'chasidagi savdo markazi' yoki 'Yunusoboddagi 3 qavatli ofis binosi')_"
     )
     await state.set_state(TaskSubmissionState.waiting_for_project_title)
     await callback.answer()
@@ -35,9 +35,9 @@ async def callback_start_task(callback: CallbackQuery, state: FSMContext) -> Non
 @router.message(Command("task"))
 async def cmd_task(message: Message, state: FSMContext) -> None:
     await message.answer(
-        "🏗️ *Submit Tomorrow's Project Task*\n\n"
-        "Please enter the *Project Title*:\n"
-        "_(e.g., 'Navoi Street Commercial Center' or '3-Story Office Building in Yunusabad')_"
+        "🏗️ *Ertangi Loyiha Vazifasini Kiritish*\n\n"
+        "Iltimos, *loyiha nomini* kiriting:\n"
+        "_(Masalan: 'Navoiy ko'chasidagi savdo markazi' yoki 'Yunusoboddagi 3 qavatli ofis binosi')_"
     )
     await state.set_state(TaskSubmissionState.waiting_for_project_title)
 
@@ -46,8 +46,8 @@ async def cmd_task(message: Message, state: FSMContext) -> None:
 async def process_project_title(message: Message, state: FSMContext) -> None:
     await state.update_data(project_title=message.text.strip())
     await message.answer(
-        "🏢 What is the *Building Typology*?\n\n"
-        "_(e.g., 'Commercial Office', 'Residential Cottage', 'Retail Store', 'Automobile Showroom')_"
+        "🏢 *Bino turi (tipologiyasi)* qanday?\n\n"
+        "_(Masalan: 'Tijorat ofisi', 'Turar-joy kotteji', 'Do'kon', 'Avtosalon', 'Ko'p qavatli dom')_"
     )
     await state.set_state(TaskSubmissionState.waiting_for_building_type)
 
@@ -56,8 +56,8 @@ async def process_project_title(message: Message, state: FSMContext) -> None:
 async def process_building_type(message: Message, state: FSMContext) -> None:
     await state.update_data(building_type=message.text.strip())
     await message.answer(
-        "📝 Please enter any *Specific Instructions or Focus Areas*:\n\n"
-        "_(e.g., 'Need cost-effective local wall materials, greywater recycling concept, and check Tashkent design codes for facade')_"
+        "📝 Iltimos, *qo'shimcha talab yoki e'tibor qaratilishi kerak bo'lgan jihatlarni* yozing:\n\n"
+        "_(Masalan: 'O'zbekistonda arzon va sifatli devor materiallari, tualet uchun suvni qayta ishlash, va fasad uchun Toshkent dizayn kodiga e'tibor berilsin')_"
     )
     await state.set_state(TaskSubmissionState.waiting_for_notes)
 
@@ -66,8 +66,8 @@ async def process_building_type(message: Message, state: FSMContext) -> None:
 async def process_notes(message: Message, state: FSMContext) -> None:
     await state.update_data(raw_notes=message.text.strip())
     await message.answer(
-        "🌍 *Design Standards Preference:*\n"
-        "Would you like standard Uzbekistan norms only, or should we include a high-spec Global / European benchmark as well?",
+        "🌍 *Qurilish standarti varianti:*\n"
+        "Faqat O'zbekiston standartlari bo'yicha tayyorlansinmi yoki qo'shimcha Yevropa / Jahon ilg'or standarti ham kiritilsinmi?",
         reply_markup=get_tier_keyboard(),
     )
     await state.set_state(TaskSubmissionState.waiting_for_tier)
@@ -107,14 +107,17 @@ async def process_tier_selection(callback: CallbackQuery, state: FSMContext) -> 
         await orchestrator.process_task(session=session, task=task)
 
     await state.clear()
+    tier_label = (
+        "O'zbekiston standarti + Jahon/Yevropa tajribasi" if request_global_tier else "O'zbekiston standarti (Asosiy)"
+    )
     confirmation_text = (
-        "✅ *Task Registered for Overnight AI Preparation!*\n\n"
-        f"• *Project:* `{project_title}`\n"
-        f"• *Typology:* `{building_type}`\n"
-        f"• *Target Date:* `{target_date}`\n"
-        f"• *Tier:* `{'Uzbek Standard + Global Benchmark' if request_global_tier else 'Uzbekistan Standard'}`\n\n"
-        "🤖 *The AI has pre-compiled your technical research dossier.*\n"
-        "🕘 It will be delivered to you tomorrow morning at *09:00* before you start working!"
+        "✅ *Vazifa muvaffaqiyatli qabul qilindi!*\n\n"
+        f"• *Loyiha:* `{project_title}`\n"
+        f"• *Bino turi:* `{building_type}`\n"
+        f"• *Sana:* `{target_date}`\n"
+        f"• *Variant:* `{tier_label}`\n\n"
+        "🤖 *AI ushbu loyiha uchun to'liq texnik ma'lumotnomani tayyorlashni boshladi.*\n"
+        "🕘 Ertaga ertalab soat *09:00*da ishga kelishingiz bilan tayyor shpargalka Telegramingizga yetkaziladi!"
     )
     await callback.message.edit_text(confirmation_text)
-    await callback.answer("Task saved successfully!")
+    await callback.answer("Vazifa muvaffaqiyatli saqlandi!")

@@ -12,16 +12,12 @@ class Settings(BaseSettings):
     # Telegram Bot
     BOT_TOKEN: str = Field(default="dummy_token")
 
-    # PostgreSQL Database
-    DB_HOST: str = Field(default="localhost")
-    DB_PORT: int = Field(default=5433)
-    DB_USER: str = Field(default="adad_user")
-    DB_PASSWORD: str = Field(default="adad_secure_password")
-    DB_NAME: str = Field(default="adad_db")
+    # Database Configuration (Defaults to clean SQLite file)
+    DATABASE_URL: str = Field(default="sqlite+aiosqlite:///adad.db")
 
     # LLM Settings
     LLM_API_KEY: str = Field(default="")
-    LLM_MODEL: str = Field(default="gpt-4o-mini")
+    LLM_MODEL: str = Field(default="gemini-3.6-flash")
     LLM_BASE_URL: str | None = Field(default=None)
 
     # Schedule Configuration
@@ -33,7 +29,7 @@ class Settings(BaseSettings):
 
     @property
     def database_url(self) -> str:
-        return f"postgresql+asyncpg://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
+        return self.DATABASE_URL
 
 
 settings = Settings()

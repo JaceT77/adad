@@ -7,33 +7,41 @@ from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMar
 from bot.bot import bot
 from database import crud
 from database.connection import async_session
+from database.models import SpecialistRole
 
 logger = logging.getLogger(__name__)
 
 router = Router(name="admin_router")
 
+ROLE_NAMES_UZ = {
+    SpecialistRole.ARCHITECT: "Arxitektor",
+    SpecialistRole.STRUCTURAL_ENGINEER: "Konstruktor",
+    SpecialistRole.COST_ESTIMATOR: "Smetachi",
+    SpecialistRole.INTERIOR_DESIGNER: "Dizayner",
+}
+
 
 @router.message(Command("set_admin"))
 async def cmd_set_admin(message: Message) -> None:
-    """Displays a list of eligible users to promote to Administrator."""
+    """Administratorlikka tayinlash uchun mutaxassislar ro'yxatini ko'rsatadi."""
     async with async_session() as session:
         caller = await crud.get_user_by_telegram_id(session, message.from_user.id)
 
         if not caller or not caller.is_admin:
-            await message.answer("⛔ *Access Denied.*\nOnly administrators can use this command.")
+            await message.answer("⛔ *Ruxsat yo'q.*\nUshbu buyruqdan faqat administratorlar foydalana oladi.")
             return
 
         candidates = await crud.get_non_admin_users(session)
 
         if not candidates:
             await message.answer(
-                "ℹ️ *No eligible users found.*\nAll registered active users are already administrators."
+                "ℹ️ *Nomzodlar topilmadi.*\nBarcha faol mutaxassislar allaqachon administrator maqomiga ega."
             )
             return
 
         keyboard_buttons = []
         for user in candidates:
-            role_label = user.role.value.replace("_", " ").title()
+            role_label = ROLE_NAMES_UZ.get(user.role, user.role.value)
             handle = f" (@{user.username})" if user.username else ""
             button_text = f"👤 {user.full_name}{handle} — {role_label}"
             keyboard_buttons.append([InlineKeyboardButton(text=button_text, callback_data=f"promote:{user.id}")])
@@ -41,49 +49,50 @@ async def cmd_set_admin(message: Message) -> None:
         keyboard = InlineKeyboardMarkup(inline_keyboard=keyboard_buttons)
 
         await message.answer(
-            "👑 *Administrator Management*\n\n"
-            "Select a specialist from the list below to promote them to *Administrator*:",
+            "👑 *Administrator Tayinlash*\n\nAdministratorlik huquqini bermoqchi bo'lgan mutaxassisni tanlang:",
             reply_markup=keyboard,
         )
 
 
 @router.callback_query(F.data.startswith("promote:"))
 async def on_promote_user(callback: CallbackQuery) -> None:
-    """Handles admin selection and notifies both parties."""
+    """Tanlangan foydalanuvchini admin qiladi va ikkala tomonga xabar beradi."""
     target_user_id = int(callback.data.split(":")[1])
 
     async with async_session() as session:
         caller = await crud.get_user_by_telegram_id(session, callback.from_user.id)
 
         if not caller or not caller.is_admin:
-            await callback.answer("⛔ Access denied: You are not an administrator.", show_alert=True)
+            await callback.answer("⛔ Ruxsat yo'q: Siz administrator emassiz.", show_alert=True)
             return
 
         target_user = await crud.set_user_admin(session, target_user_id, is_admin=True)
 
         if not target_user:
-            await callback.answer("❌ User not found.", show_alert=True)
+            await callback.answer("❌ Mutaxassis topilmadi.", show_alert=True)
             return
 
-    # 1. Confirmation message to the acting admin
+    role_label = ROLE_NAMES_UZ.get(target_user.role, target_user.role.value)
+
+    # 1. Amalni bajargan adminga tasdiqlash xabari
     admin_confirm_text = (
-        "✅ *Administrator Promoted Successfully!*\n\n"
-        f"• *User:* `{target_user.full_name}`\n"
-        f"• *Role:* `{target_user.role.value.replace('_', ' ').title()}`\n"
+        "✅ *Administrator Muvaffaqiyatli Tayinlandi!*\n\n"
+        f"• *Ism:* `{target_user.full_name}`\n"
+        f"• *Mutaxassislik:* `{role_label}`\n"
         f"• *Telegram ID:* `{target_user.telegram_id}`\n\n"
-        "They now have full administrative privileges."
+        "Ushbu xodim endi to'liq administratorlik vakolatlariga ega."
     )
     await callback.message.edit_text(admin_confirm_text)
-    await callback.answer(f"{target_user.full_name} is now an admin!")
+    await callback.answer(f"{target_user.full_name} endi admin!")
 
-    # 2. Notification message to the newly promoted user
+    # 2. Yangi tayinlangan adminga bildirishnoma xabari
     try:
         user_notify_text = (
-            "🎉 *Administrator Privileges Granted!*\n\n"
-            f"You have been promoted to *Administrator* by *{caller.full_name}*.\n\n"
-            "You can now use management tools:\n"
-            "• `/admin` - View team status and admin dashboard\n"
-            "• `/set_admin` - Promote other team members to admin"
+            "🎉 *Tabriklaymiz, Sizga Administratorlik Huquqi Berildi!*\n\n"
+            f"Siz *{caller.full_name}* tomonidan *Administrator* etib tayinlandingiz.\n\n"
+            "Endi siz quyidagi boshqaruv buyruqlaridan foydalanishingiz mumkin:\n"
+            "• `/admin` - Jamoa statistikasi va boshqaruv paneli\n"
+            "• `/set_admin` - Boshqa mutaxassislarni ham admin etib tayinlash"
         )
         await bot.send_message(
             chat_id=target_user.telegram_id,
@@ -96,12 +105,12 @@ async def on_promote_user(callback: CallbackQuery) -> None:
 
 @router.message(Command("admin"))
 async def cmd_admin_dashboard(message: Message) -> None:
-    """Displays the management dashboard for administrators."""
+    """Administratorlar uchun boshqaruv paneli."""
     async with async_session() as session:
         caller = await crud.get_user_by_telegram_id(session, message.from_user.id)
 
         if not caller or not caller.is_admin:
-            await message.answer("⛔ *Access Denied.*\nOnly administrators can access this dashboard.")
+            await message.answer("⛔ *Ruxsat yo'q.*\nUshbu panel faqat administratorlar uchun.")
             return
 
         active_users = await crud.get_active_users(session)
@@ -109,14 +118,14 @@ async def cmd_admin_dashboard(message: Message) -> None:
         specialists = [u for u in active_users if not u.is_admin]
 
     dashboard_text = (
-        "👑 *Administrator Dashboard*\n"
+        "👑 *Administrator Boshqaruv Paneli*\n"
         "━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-        f"👥 *Total Active Members:* `{len(active_users)}`\n"
-        f"🛡️ *Administrators:* `{len(admins)}`\n"
-        f"👷 *Specialists:* `{len(specialists)}`\n\n"
-        "📌 *Available Commands:*\n"
-        "• `/set_admin` - Choose a specialist to promote to admin\n"
-        "• `/profile` - View your personal profile & badge\n"
-        "• `/task` - Submit a project task for overnight AI research\n"
+        f"👥 *Jami faol a'zolar:* `{len(active_users)}`\n"
+        f"🛡️ *Administratorlar:* `{len(admins)}`\n"
+        f"👷 *Mutaxassislar:* `{len(specialists)}`\n\n"
+        "📌 *Mavjud buyruqlar:*\n"
+        "• `/set_admin` - Mutaxassisni Administrator etib tayinlash\n"
+        "• `/profile` - Shaxsiy profilingiz va maqomingiz\n"
+        "• `/task` - Ertangi loyiha topshirig'ini AI ga yuborish\n"
     )
     await message.answer(dashboard_text)

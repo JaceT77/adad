@@ -11,8 +11,8 @@ from sqlalchemy import (
     ForeignKey,
     String,
     Text,
+    Uuid,
 )
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -56,7 +56,7 @@ class User(Base):
 class DailyTask(Base):
     __tablename__ = "daily_tasks"
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     target_date: Mapped[date] = mapped_column(Date, nullable=False)
     project_title: Mapped[str] = mapped_column(String(255), nullable=False)
@@ -79,7 +79,7 @@ class DailyTask(Base):
 class Dossier(Base):
     __tablename__ = "dossiers"
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
     task_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("daily_tasks.id", ondelete="CASCADE"), unique=True, nullable=False
     )

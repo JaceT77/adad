@@ -7,25 +7,25 @@ def get_role_keyboard() -> InlineKeyboardMarkup:
     buttons = [
         [
             InlineKeyboardButton(
-                text="🏛️ Architect (Arxitektor)",
+                text="🏛️ Arxitektor",
                 callback_data=f"role:{SpecialistRole.ARCHITECT.value}",
             )
         ],
         [
             InlineKeyboardButton(
-                text="🏗️ Structural Engineer (Konstruktor)",
+                text="🏗️ Konstruktor (Muhandis)",
                 callback_data=f"role:{SpecialistRole.STRUCTURAL_ENGINEER.value}",
             )
         ],
         [
             InlineKeyboardButton(
-                text="💰 Cost Estimator (Smetchik)",
+                text="💰 Smetachi (Smetchik)",
                 callback_data=f"role:{SpecialistRole.COST_ESTIMATOR.value}",
             )
         ],
         [
             InlineKeyboardButton(
-                text="🎨 Interior & Facade Designer",
+                text="🎨 Interyer va Fasad Dizayneri",
                 callback_data=f"role:{SpecialistRole.INTERIOR_DESIGNER.value}",
             )
         ],
@@ -37,13 +37,13 @@ def get_tier_keyboard() -> InlineKeyboardMarkup:
     buttons = [
         [
             InlineKeyboardButton(
-                text="🇺🇿 Local Uzbekistan Standard (Default)",
+                text="🇺🇿 O'zbekiston standarti (Asosiy / Tejamkor)",
                 callback_data="tier:local",
             )
         ],
         [
             InlineKeyboardButton(
-                text="🌍 Include Global / European Benchmark",
+                text="🌍 Jahon / Yevropa standarti bilan birga",
                 callback_data="tier:global",
             )
         ],
@@ -55,7 +55,7 @@ def get_start_task_keyboard() -> InlineKeyboardMarkup:
     buttons = [
         [
             InlineKeyboardButton(
-                text="📝 Submit Tomorrow's Project Task",
+                text="📝 Ertangi loyiha vazifasini kiritish",
                 callback_data="action:submit_task",
             )
         ]
