@@ -111,6 +111,9 @@ async def create_daily_task(
     await session.commit()
     await session.refresh(task)
     return task
+    stmt = select(DailyTask).options(selectinload(DailyTask.user)).where(DailyTask.id == task.id)
+    result = await session.execute(stmt)
+    return result.scalar_one()
 
 
 async def get_pending_tasks_for_research(session: AsyncSession) -> list[DailyTask]:
@@ -167,10 +170,35 @@ async def get_ready_dossiers_for_delivery(
     return list(result.scalars().all())
 
 
-async def mark_task_delivered(session: AsyncSession, task_id: uuid.UUID) -> None:
+async def mark_task_delivered(session: AsyncSession, task_id: uuid.UUID | str) -> None:
+    if isinstance(task_id, str):
+        task_id = uuid.UUID(task_id)
     stmt = select(DailyTask).where(DailyTask.id == task_id)
     result = await session.execute(stmt)
     task = result.scalar_one_or_none()
     if task:
         task.status = TaskStatus.DELIVERED
         await session.commit()
+
+
+async def get_task_with_dossier(session: AsyncSession, task_id: uuid.UUID | str) -> DailyTask | None:
+    if isinstance(task_id, str):
+        task_id = uuid.UUID(task_id)
+    stmt = (
+        select(DailyTask)
+        .options(selectinload(DailyTask.user), selectinload(DailyTask.dossier))
+        .where(DailyTask.id == task_id)
+    )
+    result = await session.execute(stmt)
+    return result.scalar_one_or_none()
+
+
+async def get_latest_task_for_user(session: AsyncSession, user_id: int) -> DailyTask | None:
+    stmt = (
+        select(DailyTask)
+        .options(selectinload(DailyTask.user), selectinload(DailyTask.dossier))
+        .where(DailyTask.user_id == user_id)
+        .order_by(DailyTask.created_at.desc())
+    )
+    result = await session.execute(stmt)
+    return result.scalars().first()

@@ -4,6 +4,7 @@ from datetime import date
 from aiogram import Bot
 
 from bot.keyboards.inline import get_start_task_keyboard
+from bot.utils.sender import safe_send_message
 from database import crud
 from database.connection import async_session
 
@@ -17,10 +18,10 @@ async def evening_task_prompt_job(bot: Bot) -> None:
         users = await crud.get_active_users(session)
 
     prompt_text = (
-        "🕖 *Xayrli kech!*\n\n"
+        "🕖 <b>Xayrli kech!</b>\n\n"
         "Soat 19:00 bo'ldi — ertangi loyiha vazifasini kiritish vaqti keldi.\n"
         "Ertaga qaysi loyiha yoki bino ustida ishlaysiz?\n\n"
-        "Vazifangizni hoziroq kiriting. AI tun bo'yi siz uchun *O'zbekiston SHNK normalari, mahalliy arzon materiallar, yashil texnologiyalar va AutoCAD andozasini* tayyorlab qo'yadi!"
+        "Vazifangizni hoziroq kiriting. AI tun bo'yi siz uchun <b>O'zbekiston SHNK/QMQ me'yorlari, rasmiy manbalar, arzon mahalliy materiallar, yashil texnologiyalar va AutoCAD andozasini</b> tayyorlab qo'yadi!"
     )
 
     for user in users:
@@ -50,13 +51,10 @@ async def morning_dossier_delivery_job(bot: Bot) -> None:
             user_telegram_id = task.user.telegram_id
             try:
                 header = (
-                    "🌅 *Xayrli tong! Bugungi ish kuningiz uchun tayyorlangan texnik ma'lumotnoma (shpargalka):*\n"
+                    "🌅 <b>Xayrli tong! Bugungi ish kuningiz uchun tayyorlangan texnik ma'lumotnoma (shpargalka):</b>\n"
                     "━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
                 )
-                await bot.send_message(
-                    chat_id=user_telegram_id,
-                    text=header + task.dossier.full_content,
-                )
+                await safe_send_message(bot, user_telegram_id, header + task.dossier.full_content)
                 await crud.mark_task_delivered(session, task.id)
                 logger.info(f"Ma'lumotnoma yetkazildi: vazifa {task.id}, foydalanuvchi {user_telegram_id}")
             except Exception as e:

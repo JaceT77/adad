@@ -28,14 +28,14 @@ async def cmd_set_admin(message: Message) -> None:
         caller = await crud.get_user_by_telegram_id(session, message.from_user.id)
 
         if not caller or not caller.is_admin:
-            await message.answer("⛔ *Ruxsat yo'q.*\nUshbu buyruqdan faqat administratorlar foydalana oladi.")
+            await message.answer("⛔ <b>Ruxsat yo'q.</b>\nUshbu buyruqdan faqat administratorlar foydalana oladi.")
             return
 
         candidates = await crud.get_non_admin_users(session)
 
         if not candidates:
             await message.answer(
-                "ℹ️ *Nomzodlar topilmadi.*\nBarcha faol mutaxassislar allaqachon administrator maqomiga ega."
+                "ℹ️ <b>Nomzodlar topilmadi.</b>\nBarcha faol mutaxassislar allaqachon administrator maqomiga ega."
             )
             return
 
@@ -49,7 +49,7 @@ async def cmd_set_admin(message: Message) -> None:
         keyboard = InlineKeyboardMarkup(inline_keyboard=keyboard_buttons)
 
         await message.answer(
-            "👑 *Administrator Tayinlash*\n\nAdministratorlik huquqini bermoqchi bo'lgan mutaxassisni tanlang:",
+            "👑 <b>Administrator Tayinlash</b>\n\nAdministratorlik huquqini bermoqchi bo'lgan mutaxassisni tanlang:",
             reply_markup=keyboard,
         )
 
@@ -76,11 +76,11 @@ async def on_promote_user(callback: CallbackQuery) -> None:
 
     # 1. Amalni bajargan adminga tasdiqlash xabari
     admin_confirm_text = (
-        "✅ *Administrator Muvaffaqiyatli Tayinlandi!*\n\n"
-        f"• *Ism:* `{target_user.full_name}`\n"
-        f"• *Mutaxassislik:* `{role_label}`\n"
-        f"• *Telegram ID:* `{target_user.telegram_id}`\n\n"
-        "Ushbu xodim endi to'liq administratorlik vakolatlariga ega."
+        "✅ <b>Administrator Muvaffaqiyatli Tayinlandi!</b>\n\n"
+        f"• <b>Ism:</b> <code>{target_user.full_name}</code>\n"
+        f"• <b>Mutaxassislik:</b> <code>{role_label}</code>\n"
+        f"• <b>Telegram ID:</b> <code>{target_user.telegram_id}</code>\n\n"
+        "Ushbu mutaxassis endi to'liq administratorlik vakolatlariga ega."
     )
     await callback.message.edit_text(admin_confirm_text)
     await callback.answer(f"{target_user.full_name} endi admin!")
@@ -88,11 +88,11 @@ async def on_promote_user(callback: CallbackQuery) -> None:
     # 2. Yangi tayinlangan adminga bildirishnoma xabari
     try:
         user_notify_text = (
-            "🎉 *Tabriklaymiz, Sizga Administratorlik Huquqi Berildi!*\n\n"
-            f"Siz *{caller.full_name}* tomonidan *Administrator* etib tayinlandingiz.\n\n"
+            "🎉 <b>Tabriklaymiz, Sizga Administratorlik Huquqi Berildi!</b>\n\n"
+            f"Siz <b>{caller.full_name}</b> tomonidan <b>Administrator</b> etib tayinlandingiz.\n\n"
             "Endi siz quyidagi boshqaruv buyruqlaridan foydalanishingiz mumkin:\n"
-            "• `/admin` - Jamoa statistikasi va boshqaruv paneli\n"
-            "• `/set_admin` - Boshqa mutaxassislarni ham admin etib tayinlash"
+            "• <code>/admin</code> - Jamoa statistikasi va boshqaruv paneli\n"
+            "• <code>/set_admin</code> - Boshqa mutaxassislarni ham admin etib tayinlash"
         )
         await bot.send_message(
             chat_id=target_user.telegram_id,
@@ -110,7 +110,7 @@ async def cmd_admin_dashboard(message: Message) -> None:
         caller = await crud.get_user_by_telegram_id(session, message.from_user.id)
 
         if not caller or not caller.is_admin:
-            await message.answer("⛔ *Ruxsat yo'q.*\nUshbu panel faqat administratorlar uchun.")
+            await message.answer("⛔ <b>Ruxsat yo'q.</b>\nUshbu panel faqat administratorlar uchun.")
             return
 
         active_users = await crud.get_active_users(session)
@@ -118,14 +118,14 @@ async def cmd_admin_dashboard(message: Message) -> None:
         specialists = [u for u in active_users if not u.is_admin]
 
     dashboard_text = (
-        "👑 *Administrator Boshqaruv Paneli*\n"
+        "👑 <b>Administrator Boshqaruv Paneli</b>\n"
         "━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-        f"👥 *Jami faol a'zolar:* `{len(active_users)}`\n"
-        f"🛡️ *Administratorlar:* `{len(admins)}`\n"
-        f"👷 *Mutaxassislar:* `{len(specialists)}`\n\n"
-        "📌 *Mavjud buyruqlar:*\n"
-        "• `/set_admin` - Mutaxassisni Administrator etib tayinlash\n"
-        "• `/profile` - Shaxsiy profilingiz va maqomingiz\n"
-        "• `/task` - Ertangi loyiha topshirig'ini AI ga yuborish\n"
+        f"👥 <b>Jami faol a'zolar:</b> <code>{len(active_users)}</code>\n"
+        f"🛡️ <b>Administratorlar:</b> <code>{len(admins)}</code>\n"
+        f"👷 <b>Mutaxassislar:</b> <code>{len(specialists)}</code>\n\n"
+        "📌 <b>Mavjud buyruqlar:</b>\n"
+        "• <code>/set_admin</code> - Mutaxassisni Administrator etib tayinlash\n"
+        "• <code>/profile</code> - Shaxsiy profilingiz va maqomingiz\n"
+        "• <code>/task</code> - Ertangi loyiha topshirig'ini AI ga yuborish\n"
     )
     await message.answer(dashboard_text)

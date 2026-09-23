@@ -27,14 +27,11 @@ async def main() -> None:
 
     # 1. Initialize Database Tables
     try:
-        logger.info("Connecting to PostgreSQL and initializing schema...")
+        logger.info("Connecting to SQLite database and initializing schema...")
         await init_db()
         logger.info("Database schema initialized successfully.")
     except Exception as e:
-        logger.error(
-            f"Failed to connect to database: {e}\n"
-            "Make sure PostgreSQL is running in Docker: `docker compose up -d postgres`"
-        )
+        logger.error(f"Failed to initialize SQLite database: {e}")
         sys.exit(1)
 
     # 2. Register Telegram Routers

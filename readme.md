@@ -14,10 +14,12 @@ Arxitektura, muhandislik va loyihalash sohasidagi mutaxassislar (Arxitektor, Kon
   - Ikki pog'onali standart: O'zbekiston standarti (Asosiy) va Ilg'or Jahon/Yevropa tajribasi.
   - AutoCAD (DWG) andoza ko'rsatkichlari: 6x6m konstruktiv o'qlar to'ri, qavat balandliklari, devor qatlamlari chizmasi.
 - **09:00 Ertalabki Yetkazish**: Ish kuni boshlanishida to'liq tayyorlangan ma'lumotnoma mutaxassisning Telegramiga yetkaziladi.
-- **Administratorlik Tizimi**:
-  - Tizimga birinchi kirgan foydalanuvchi avtomatik tarzda **Administrator** bo'ladi.
-  - `/set_admin` buyrug'i orqali jamoa a'zolarini osonlik bilan admin qilib tayinlash mumkin.
-  - `/admin` orqali jamoa a'zolari va statistikani kuzatish mumkin.
+- **Ma'lumotnomani Darhol Ko'rish & Sinov Buyruqlari**:
+  - Vazifa topshirilgach, foydalanuvchi darhol *"⏳ AI tahlil qilmoqda..."* xabarini oladi (kutish vaqtida Telegram qotib qolmaydi).
+  - Tayyor bo'lgach, **"⚡ Ma'lumotnomani hoziroq ko'rish"** tugmasi orqali 09:00 ni kutmasdan natijani o'sha zahotiyoq ochish mumkin.
+  - `/instant_dossier` — oxirgi tayyorlangan ma'lumotnomani istalgan paytda darhol chiqarish.
+  - `/trigger_morning` — 09:00 yetkazish vazifasini hoziroq sinab ko'rish.
+  - `/trigger_evening` — 19:00 kechki so'rov vazifasini hoziroq sinab ko'rish.
 
 ---
 
